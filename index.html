@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phone Number Keeper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            width: 80%;
+            max-width: 600px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        input[type="text"] {
+            width: calc(100% - 130px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            background: #007bff;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .search-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .remove-button {
+            background: #dc3545;
+        }
+        .remove-button:hover {
+            background: #c82333;
+        }
+        .call-button {
+            background: #28a745;
+            margin-left: 5px;
+        }
+        .call-button:hover {
+            background: #218838;
+        }
+        .input-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Phone Number Keeper</h1>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search...">
+            <button onclick="sortContacts()">Sort Alphabetically</button>
+        </div>
+        <div class="input-group">
+            <input type="text" id="nameInput" placeholder="Name">
+            <input type="text" id="phoneInput" placeholder="Phone Number">
+            <button onclick="addContact()">Add</button>
+        </div>
+        <ul id="contactList">
+            <!-- Contacts will be added here -->
+        </ul>
+    </div>
+
+    <script>
+        const contactList = document.getElementById('contactList');
+        const nameInput = document.getElementById('nameInput');
+        const phoneInput = document.getElementById('phoneInput');
+        const searchInput = document.getElementById('searchInput');
+
+        // Load contacts from localStorage
+        function loadContacts() {
+            const contacts = JSON.parse(localStorage.getItem('contacts')) || [];
+            contactList.innerHTML = '';
+            contacts.forEach(contact => addListItem(contact.name, contact.phone));
+        }
+
+        // Save contacts to localStorage
+        function saveContacts() {
+            const contacts = [];
+            contactList.querySelectorAll('li').forEach(li => {
+                const name = li.querySelector('.contact-name').textContent.trim();
+                const phone = li.querySelector('.contact-phone').textContent.trim();
+                contacts.push({ name, phone });
+            });
+            localStorage.setItem('contacts', JSON.stringify(contacts));
+        }
+
+        // Add contact
+        function addContact() {
+            const nameText = nameInput.value.trim();
+            const phoneText = phoneInput.value.trim();
+            if (nameText && phoneText) {
+                addListItem(nameText, phoneText);
+                nameInput.value = '';
+                phoneInput.value = '';
+                saveContacts();
+            }
+        }
+
+        // Add list item
+        function addListItem(name, phone) {
+            const li = document.createElement('li');
+            li.innerHTML = `<span class="contact-name">${name}</span>: <span class="contact-phone">${phone}</span>`;
+            const callButton = document.createElement('button');
+            callButton.textContent = 'Call';
+            callButton.classList.add('call-button');
+            callButton.onclick = () => {
+                window.location.href = `tel:${phone}`;
+            };
+            const removeButton = document.createElement('button');
+            removeButton.textContent = 'Remove';
+            removeButton.classList.add('remove-button');
+            removeButton.onclick = () => {
+                contactList.removeChild(li);
+                saveContacts();
+            };
+            li.appendChild(callButton);
+            li.appendChild(removeButton);
+            contactList.appendChild(li);
+        }
+
+        // Filter contacts
+        function filterContacts() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const contacts = contactList.getElementsByTagName('li');
+            Array.from(contacts).forEach(contact => {
+                const text = contact.textContent.toLowerCase();
+                contact.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        }
+
+        // Sort contacts
+        function sortContacts() {
+            const contacts = Array.from(contactList.children);
+            contacts.sort((a, b) => a.querySelector('.contact-name').textContent.localeCompare(b.querySelector('.contact-name').textContent));
+            contacts.forEach(contact => contactList.appendChild(contact));
+            saveContacts();
+        }
+
+        searchInput.addEventListener('input', filterContacts);
+
+        // Load contacts when page loads
+        document.addEventListener('DOMContentLoaded', loadContacts);
+    </script>
+</body>
+</html>
